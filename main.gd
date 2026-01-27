@@ -31,6 +31,7 @@ func _input(event: InputEvent) -> void:
 			game_start()
 		else:
 			$bird.flap()
+			check_top()
 
 
 func game_start():
@@ -49,14 +50,15 @@ func _ready() -> void:
 
 # Called every frame. 'delta' is the elapsed time since the previous frame.
 func _process(delta: float) -> void:
-	if game_running:
-		scroll += SCROLL_SPEED
-		
+	if not game_running:
+		return
+	scroll += SCROLL_SPEED
+
 	if scroll >= screen_size.x:
 		scroll = 0
-		
+
 	$ground.position.x = -scroll
-	
+
 	for pipe in pipes:
 		pipe.position.x -= SCROLL_SPEED
 
@@ -72,6 +74,22 @@ func generate_pipes():
 	add_child(pipe)
 	pipes.append(pipe)
 
+func check_top():
+	if $bird.position.y < 0:
+		$bird.falling = true
+		stop_game()
+
+func stop_game():
+	$pipeTimer.stop()
+	game_running = false
+	game_over = true
+	$bird.flying = false
 
 func bird_hit():
-	pass
+	$bird.falling = true
+	stop_game()
+
+
+func _on_ground_hit() -> void:
+	$bird.falling = false
+	stop_game()
