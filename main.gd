@@ -18,21 +18,25 @@ func new_game():
 	game_running = false
 	scroll = 0
 	score = 0
+	$scoreLabel.text = "SCORE : 0"
+	$gameOver.hide()
 	$bird.reset()
 	pipes.clear()
 	$pipeTimer.stop()
+	get_tree().call_group("pipes", "queue_free")
 	
 func _input(event: InputEvent) -> void:
 	if game_over:
-		return
+		if event.is_action_pressed("flap"):
+			new_game()
+			game_start()
 
-	if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT and event.pressed:
+	if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT or event.is_action_pressed("flap") and event.pressed:
 		if not game_running:
 			game_start()
 		else:
 			$bird.flap()
 			check_top()
-
 
 func game_start():
 	game_running = true
@@ -41,10 +45,9 @@ func game_start():
 	generate_pipes()
 	$pipeTimer.start()
 
-
 # Called when the node enters the scene tree for the first time.
 func _ready() -> void:
-	screen_size = get_window().size
+	screen_size = get_viewport_rect().size
 	ground_height = $ground.get_node("Sprite2D").texture.get_height()
 	new_game() # Replace with function body.
 
@@ -53,15 +56,11 @@ func _process(delta: float) -> void:
 	if not game_running:
 		return
 	scroll += SCROLL_SPEED
-
 	if scroll >= screen_size.x:
 		scroll = 0
-
 	$ground.position.x = -scroll
-
 	for pipe in pipes:
 		pipe.position.x -= SCROLL_SPEED
-
 
 func _on_pipe_timer_timeout() -> void:
 	generate_pipes() # Replace with function body.
@@ -71,8 +70,13 @@ func generate_pipes():
 	pipe.position.x = screen_size.x + PIPE_SPAWN_X_OFFSET
 	pipe.position.y = (screen_size.y - ground_height) / 2 + randi_range(-PIPE_RANGE, PIPE_RANGE)
 	pipe.hit.connect(bird_hit)
+	pipe.scored.connect(scored)
 	add_child(pipe)
 	pipes.append(pipe)
+
+func scored():
+	score += 1
+	$scoreLabel.text = "SCORE : " + str(score)
 
 func check_top():
 	if $bird.position.y < 0:
@@ -81,6 +85,7 @@ func check_top():
 
 func stop_game():
 	$pipeTimer.stop()
+	$gameOver.show()
 	game_running = false
 	game_over = true
 	$bird.flying = false
@@ -89,7 +94,10 @@ func bird_hit():
 	$bird.falling = true
 	stop_game()
 
-
 func _on_ground_hit() -> void:
 	$bird.falling = false
 	stop_game()
+
+func _on_game_over_restart() -> void:
+	new_game()
+	game_start()

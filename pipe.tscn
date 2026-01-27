@@ -1,4 +1,4 @@
-[gd_scene load_steps=7 format=3 uid="uid://cy755y4tu6jnn"]
+[gd_scene load_steps=8 format=3 uid="uid://cy755y4tu6jnn"]
 
 [ext_resource type="Script" uid="uid://68u6upqpiogk" path="res://pipe.gd" id="1_78010"]
 [ext_resource type="Texture2D" uid="uid://dtl4qla8nbmjk" path="res://src/pipe.png" id="2_arayy"]
@@ -15,7 +15,10 @@ size = Vector2(78, 36)
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_qp7r7"]
 size = Vector2(72, 526)
 
-[node name="pipe" type="Area2D"]
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_78010"]
+size = Vector2(5.5, 207)
+
+[node name="pipe" type="Area2D" groups=["pipes"]]
 script = ExtResource("1_78010")
 
 [node name="lower" type="Sprite2D" parent="."]
@@ -43,4 +46,12 @@ shape = SubResource("RectangleShape2D_08mfy")
 position = Vector2(0, 397)
 shape = SubResource("RectangleShape2D_qp7r7")
 
+[node name="Area2D" type="Area2D" parent="."]
+position = Vector2(-5, -4)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Area2D"]
+position = Vector2(44, 2)
+shape = SubResource("RectangleShape2D_78010")
+
 [connection signal="body_entered" from="." to="." method="_on_body_entered"]
+[connection signal="body_exited" from="Area2D" to="." method="_on_area_2d_body_exited"]
